@@ -1,6 +1,10 @@
 package app
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -18,4 +22,18 @@ func (a *App) RefreshWindowConstraints() {
 // composer window. See App.RefreshWindowConstraints for details.
 func (c *ComposerApp) RefreshWindowConstraints() {
 	wailsRuntime.WindowSetMaxSize(c.ctx, 100000, 100000)
+}
+
+// Persists the window size; close-time WindowGetSize returns zeros on Wayland.
+func (a *App) SaveWindowSize(width, height int) {
+	if a.paths == nil || width <= 0 || height <= 0 {
+		return
+	}
+	path := filepath.Join(a.paths.Config, "window-state.json")
+	data, err := json.Marshal(map[string]int{"width": width, "height": height})
+	if err != nil {
+		return
+	}
+	os.MkdirAll(filepath.Dir(path), 0700)
+	os.WriteFile(path, data, 0600)
 }

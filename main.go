@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"embed"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/hkdb/aerion/app"
@@ -17,6 +20,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 //go:embed all:frontend/dist
@@ -40,6 +44,38 @@ var (
 // Can be enabled via --debug flag or AERION_DEBUG=1 environment variable
 func DebugMode() bool {
 	return *debugMode || os.Getenv("AERION_DEBUG") == "1"
+}
+
+// windowState persists the main window geometry across launches.
+type windowState struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
+	X      int `json:"x"`
+	Y      int `json:"y"`
+}
+
+func windowStatePath() (string, error) {
+	paths, err := platform.GetPaths()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(paths.Config, "window-state.json"), nil
+}
+
+func readWindowState() windowState {
+	path, err := windowStatePath()
+	if err != nil {
+		return windowState{}
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return windowState{}
+	}
+	var s windowState
+	if json.Unmarshal(data, &s) != nil {
+		return windowState{}
+	}
+	return s
 }
 
 func main() {
@@ -101,6 +137,13 @@ func runMainMode(mailtoData *app.MailtoData, rawMailtoArg string) {
 		nativeTitleBar = settings.ReadNativeTitleBar(paths.DatabasePath())
 	}
 
+	// Restore the last window geometry if it was saved on a previous run.
+	winState := readWindowState()
+	width, height := 1280, 800
+	if winState.Width >= 360 && winState.Height >= 400 {
+		width, height = winState.Width, winState.Height
+	}
+
 	// Create an instance of the app structure
 	application := app.NewApp(DebugMode, *dbusNotify)
 	application.SingleInstanceLock = lock
@@ -126,8 +169,8 @@ func runMainMode(mailtoData *app.MailtoData, rawMailtoArg string) {
 	// Create application with options
 	err = wails.Run(&options.App{
 		Title:                    "Aerion",
-		Width:                    1280,
-		Height:                   800,
+		Width:                    width,
+		Height:                   height,
 		MinWidth:                 360,
 		MinHeight:                400,
 		Frameless:                !nativeTitleBar,
@@ -138,8 +181,19 @@ func runMainMode(mailtoData *app.MailtoData, rawMailtoArg string) {
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup:        application.Startup,
-		OnShutdown:       application.Shutdown,
-		OnBeforeClose:    application.BeforeClose,
+		OnDomReady: func(ctx context.Context) {
+			// Restore position (Wayland compositors may ignore this).
+			if winState.X != 0 || winState.Y != 0 {
+				runtime.WindowSetPosition(ctx, winState.X, winState.Y)
+			}
+		},
+		OnBeforeClose: func(ctx context.Context) bool {
+			if w, h := runtime.WindowGetSize(ctx); w > 0 && h > 0 {
+				application.SaveWindowSize(w, h)
+			}
+			return application.BeforeClose(ctx)
+		},
+		OnShutdown: application.Shutdown,
 		Bind: []interface{}{
 			application,
 			dummyComposerApp, // For binding generation

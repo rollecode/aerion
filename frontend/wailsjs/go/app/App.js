@@ -1030,6 +1030,10 @@ export function SaveUIState(arg1) {
   return window['go']['app']['App']['SaveUIState'](arg1);
 }
 
+export function SaveWindowSize(arg1, arg2) {
+  return window['go']['app']['App']['SaveWindowSize'](arg1, arg2);
+}
+
 export function SearchContacts(arg1, arg2) {
   return window['go']['app']['App']['SearchContacts'](arg1, arg2);
 }
