@@ -516,27 +516,26 @@
       </button>
     </div>
 
-    <!-- Sender avatar: colored circle, or the contact's photo when enabled
-         (falling back to the colored circle when the contact has no photo) -->
-    {#if getShowMessageListCircles()}
-      {#if getShowMessageListProfilePics()}
-        {@const avatarPhoto = contactPhotos.get(conversation.participants?.[0]?.email ?? '')}
-        <Avatar
-          email={conversation.participants?.[0]?.email || conversation.threadId}
-          name={conversation.participants?.[0]?.name}
-          size={AVATAR_PX[density]}
-          photoData={avatarPhoto?.data}
-          photoMediaType={avatarPhoto?.mediaType}
-        />
-      {:else}
-        <div
-          class="{densityClasses.avatar[density]} rounded-full flex-shrink-0 flex items-center justify-center font-medium {getAvatarColor(
-            conversation
-          )}"
-        >
-          {getInitials(conversation)}
-        </div>
-      {/if}
+    <!-- Sender avatar when photos are on, otherwise the coloured initials
+         circle. The two settings are independent. -->
+    {#if getShowMessageListProfilePics()}
+      {@const avatarPhoto = contactPhotos.get(conversation.participants?.[0]?.email ?? '')}
+      <Avatar
+        email={conversation.participants?.[0]?.email || conversation.threadId}
+        name={conversation.participants?.[0]?.name}
+        size={AVATAR_PX[density]}
+        photoData={avatarPhoto?.data}
+        photoMediaType={avatarPhoto?.mediaType}
+        initialsFallback={getShowMessageListCircles()}
+      />
+    {:else if getShowMessageListCircles()}
+      <div
+        class="{densityClasses.avatar[density]} rounded-full flex-shrink-0 flex items-center justify-center font-medium {getAvatarColor(
+          conversation
+        )}"
+      >
+        {getInitials(conversation)}
+      </div>
     {/if}
 
     <!-- Content -->

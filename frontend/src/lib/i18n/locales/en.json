@@ -388,7 +388,7 @@
     "showViewerCircles": "Show colored circles in conversation viewer",
     "showViewerCirclesHelp": "Show colored circles with sender initials in the conversation viewer",
     "showMessageListProfilePics": "Show contact photos in message list",
-    "showMessageListProfilePicsHelp": "Show the contact's profile picture (falling back to a colored circle) in the message list. Requires \"Show colored circles in message list\".",
+    "showMessageListProfilePicsHelp": "Show sender avatars in the message list. With colored circles off, senders without an avatar leave the slot empty.",
     "accentBarUnread": "Accent bar for unread messages",
     "accentBarUnreadHelp": "Shows a bar on the left side of unread messages for easier identification.",
     "darkMailContent": "Dark mail content",
