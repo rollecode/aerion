@@ -36,6 +36,7 @@ const (
 	KeyAccentBarUnread            = "accent_bar_unread"
 	KeyShowMessageListCircles     = "show_message_list_circles"
 	KeyShowMessageListProfilePics = "show_message_list_profile_pics" // render contact photos in the message-list avatar slot (default off)
+	KeyCompactToasts              = "compact_toasts"                 // compact single-row in-app notifications (default off)
 	KeyAlwaysShowMessageCheckbox  = "always_show_message_checkbox"   // reserve a fixed checkbox column instead of the hover/swipe slide-reveal (default off)
 	KeyShowViewerCircles          = "show_viewer_circles"
 	KeyLastSeenVersion            = "last_seen_version"       // for "What's new in this version" launch dialog
@@ -341,6 +342,24 @@ func (s *Store) SetShowMessageListProfilePics(enabled bool) error {
 		v = "true"
 	}
 	return s.Set(KeyShowMessageListProfilePics, v)
+}
+
+// GetCompactToasts returns whether in-app notifications render in a compact single-row layout
+func (s *Store) GetCompactToasts() (bool, error) {
+	value, err := s.Get(KeyCompactToasts)
+	if err != nil {
+		return false, err
+	}
+	return value == "true", nil
+}
+
+// SetCompactToasts toggles compact single-row in-app notifications
+func (s *Store) SetCompactToasts(enabled bool) error {
+	v := "false"
+	if enabled {
+		v = "true"
+	}
+	return s.Set(KeyCompactToasts, v)
 }
 
 // GetAlwaysShowMessageCheckbox returns whether the message list reserves a

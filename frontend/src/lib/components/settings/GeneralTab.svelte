@@ -31,6 +31,7 @@
     showMessageListProfilePics: boolean
     alwaysShowMessageCheckbox: boolean
     showViewerCircles: boolean
+    compactToasts: boolean
     darkMailContent: boolean
     darkComposerBody: boolean
   }
@@ -58,6 +59,7 @@
     showMessageListProfilePics = $bindable(),
     alwaysShowMessageCheckbox = $bindable(),
     showViewerCircles = $bindable(),
+    compactToasts = $bindable(),
     darkMailContent = $bindable(),
     darkComposerBody = $bindable(),
   }: Props = $props()
@@ -339,6 +341,22 @@
         <Switch
           id="show-viewer-circles"
           bind:checked={showViewerCircles}
+        />
+      </div>
+    </div>
+
+    <!-- Compact single-row in-app notifications -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <div>
+          <Label for="compact-toasts">{$_('settingsGeneral.compactToasts')}</Label>
+          <p class="text-xs text-muted-foreground">
+            {$_('settingsGeneral.compactToastsHelp')}
+          </p>
+        </div>
+        <Switch
+          id="compact-toasts"
+          bind:checked={compactToasts}
         />
       </div>
     </div>
