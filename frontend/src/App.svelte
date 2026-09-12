@@ -1282,6 +1282,22 @@
     // keydown + stopPropagation (so the events never reach this handler).
     // Guard for safety in case an event slips through while an extension
     // is the active rail pane.
+    // j/k always select in the message list, regardless of focused pane
+    const jk = e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'k'
+    if (jk && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (!isMailActive()) return
+      e.preventDefault()
+      const next = e.key.toLowerCase() === 'j'
+      if (e.shiftKey) {
+        if (next) messageListRef?.selectNextWithCheck()
+        else messageListRef?.selectPreviousWithCheck()
+      } else {
+        if (next) messageListRef?.selectNext()
+        else messageListRef?.selectPrevious()
+      }
+      return
+    }
+
     if (KEY.LIST_PREV(e) || KEY.LIST_PREV_CHECK(e)) {
       if (!isMailActive()) return
       e.preventDefault()
@@ -1431,6 +1447,18 @@
         if (!targetId) return
         focusMode = 'message'
         focusedMessageIdInFocus = targetId
+        return
+      }
+      case 'e': {
+        e.preventDefault()
+        const ids = messageListRef?.hasCheckedMessages()
+          ? (messageListRef?.getCheckedMessageIds() ?? [])
+          : (messageListRef?.getSelectedMessageIds() ?? [])
+        if (ids.length === 0) return
+        ;(async () => {
+          await MarkAsRead(ids).catch(() => {})
+          handleBulkArchive(ids)
+        })()
         return
       }
       case 'd': // alias of Delete: move focused/checked message(s) to Trash
