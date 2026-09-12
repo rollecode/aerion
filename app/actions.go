@@ -787,6 +787,12 @@ func (a *App) Archive(messageIDs []string) error {
 		return fmt.Errorf("failed to get archive folder: %w", err)
 	}
 	if archiveFolder == nil {
+		// Gmail archive removes the Inbox label; fall back to All Mail.
+		if a.isGmailAccount(messages[0].AccountID) {
+			if allMail, err := a.GetSpecialFolder(messages[0].AccountID, folder.TypeAll); err == nil && allMail != nil {
+				return a.MoveToFolder(messageIDs, allMail.ID)
+			}
+		}
 		return fmt.Errorf("no archive folder configured")
 	}
 
