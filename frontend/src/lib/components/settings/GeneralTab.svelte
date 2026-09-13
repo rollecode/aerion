@@ -4,6 +4,9 @@
   import { Label } from '$lib/components/ui/label'
   import { Input } from '$lib/components/ui/input'
   import Switch from '$lib/components/ui/switch/Switch.svelte'
+  import { Button } from '$lib/components/ui/button'
+  // @ts-ignore - wailsjs path
+  import { PickDownloadDirectory } from '../../../../wailsjs/go/app/App.js'
   import { _, setLocale } from '$lib/i18n'
   import { supportedLocales } from '$lib/i18n'
   import { getIsDarkActive } from '$lib/stores/theme.svelte'
@@ -31,6 +34,7 @@
     showMessageListProfilePics: boolean
     alwaysShowMessageCheckbox: boolean
     showViewerCircles: boolean
+    downloadDirectory: string
     darkMailContent: boolean
     darkComposerBody: boolean
   }
@@ -58,9 +62,18 @@
     showMessageListProfilePics = $bindable(),
     alwaysShowMessageCheckbox = $bindable(),
     showViewerCircles = $bindable(),
+    downloadDirectory = $bindable(),
     darkMailContent = $bindable(),
     darkComposerBody = $bindable(),
   }: Props = $props()
+
+  async function chooseDownloadDirectory() {
+    try {
+      downloadDirectory = await PickDownloadDirectory()
+    } catch (err) {
+      console.error('Failed to choose download folder:', err)
+    }
+  }
 
   // Message list density options
   const densityOptions = $derived([
@@ -324,6 +337,29 @@
           id="show-message-list-circles"
           bind:checked={showMessageListCircles}
         />
+      </div>
+    </div>
+
+    <!-- Download folder -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between gap-4">
+        <div class="min-w-0">
+          <Label for="download-directory">{$_('settingsGeneral.downloadDirectory')}</Label>
+          <p class="text-xs text-muted-foreground">
+            {$_('settingsGeneral.downloadDirectoryHelp')}
+          </p>
+          <p class="text-xs text-muted-foreground truncate mt-1" title={downloadDirectory}>
+            {downloadDirectory}
+          </p>
+        </div>
+        <Button
+          id="download-directory"
+          variant="outline"
+          size="sm"
+          onclick={chooseDownloadDirectory}
+        >
+          {$_('settingsGeneral.downloadDirectoryChoose')}
+        </Button>
       </div>
     </div>
 

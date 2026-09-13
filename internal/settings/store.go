@@ -38,6 +38,7 @@ const (
 	KeyShowMessageListProfilePics = "show_message_list_profile_pics" // render contact photos in the message-list avatar slot (default off)
 	KeyAlwaysShowMessageCheckbox  = "always_show_message_checkbox"   // reserve a fixed checkbox column instead of the hover/swipe slide-reveal (default off)
 	KeyShowViewerCircles          = "show_viewer_circles"
+	KeyDownloadDirectory          = "download_directory"      // where save dialogs open; empty means the platform default
 	KeyLastSeenVersion            = "last_seen_version"       // for "What's new in this version" launch dialog
 	KeyOAuthWarningDisabled       = "oauth_warning_disabled"  // user toggled "Don't show again" on the missing-OAuth-creds launch warning
 	KeySpellcheckEnabled          = "spellcheck_enabled"      // composer spellcheck master toggle (defaults on)
@@ -361,6 +362,17 @@ func (s *Store) SetAlwaysShowMessageCheckbox(enabled bool) error {
 		v = "true"
 	}
 	return s.Set(KeyAlwaysShowMessageCheckbox, v)
+}
+
+// GetDownloadDirectory returns the configured save directory. Empty means the
+// caller should fall back to the platform default.
+func (s *Store) GetDownloadDirectory() (string, error) {
+	return s.Get(KeyDownloadDirectory)
+}
+
+// SetDownloadDirectory stores the directory save dialogs should open in.
+func (s *Store) SetDownloadDirectory(dir string) error {
+	return s.Set(KeyDownloadDirectory, dir)
 }
 
 // GetShowViewerCircles returns whether colored sender circles
