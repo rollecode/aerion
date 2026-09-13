@@ -38,6 +38,8 @@ const (
 	KeyShowMessageListProfilePics = "show_message_list_profile_pics" // render contact photos in the message-list avatar slot (default off)
 	KeyAlwaysShowMessageCheckbox  = "always_show_message_checkbox"   // reserve a fixed checkbox column instead of the hover/swipe slide-reveal (default off)
 	KeyShowViewerCircles          = "show_viewer_circles"
+	KeyShowTrayIcon               = "show_tray_icon"          // publish a system tray item (default on)
+	KeyTrayIconWhite              = "tray_icon_white"         // render the tray icon as a white silhouette
 	KeyLastSeenVersion            = "last_seen_version"       // for "What's new in this version" launch dialog
 	KeyOAuthWarningDisabled       = "oauth_warning_disabled"  // user toggled "Don't show again" on the missing-OAuth-creds launch warning
 	KeySpellcheckEnabled          = "spellcheck_enabled"      // composer spellcheck master toggle (defaults on)
@@ -361,6 +363,43 @@ func (s *Store) SetAlwaysShowMessageCheckbox(enabled bool) error {
 		v = "true"
 	}
 	return s.Set(KeyAlwaysShowMessageCheckbox, v)
+}
+
+// GetShowTrayIcon reports whether the system tray item is published.
+// Defaults to true, so an unset value still shows the icon.
+func (s *Store) GetShowTrayIcon() (bool, error) {
+	value, err := s.Get(KeyShowTrayIcon)
+	if err != nil {
+		return true, err
+	}
+	return value != "false", nil
+}
+
+// SetShowTrayIcon enables or disables the system tray item.
+func (s *Store) SetShowTrayIcon(enabled bool) error {
+	v := "false"
+	if enabled {
+		v = "true"
+	}
+	return s.Set(KeyShowTrayIcon, v)
+}
+
+// GetTrayIconWhite reports whether the tray icon renders as a white silhouette.
+func (s *Store) GetTrayIconWhite() (bool, error) {
+	value, err := s.Get(KeyTrayIconWhite)
+	if err != nil {
+		return false, err
+	}
+	return value == "true", nil
+}
+
+// SetTrayIconWhite switches the tray icon between full colour and white.
+func (s *Store) SetTrayIconWhite(white bool) error {
+	v := "false"
+	if white {
+		v = "true"
+	}
+	return s.Set(KeyTrayIconWhite, v)
 }
 
 // GetShowViewerCircles returns whether colored sender circles

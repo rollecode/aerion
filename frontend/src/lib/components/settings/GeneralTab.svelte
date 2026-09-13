@@ -16,6 +16,8 @@
     showTitleBar: boolean
     runBackground: boolean
     startHidden: boolean
+    showTrayIcon: boolean
+    trayIconWhite: boolean
     autostart: boolean
     language: string
     onDelayChange: (value: number) => void
@@ -43,6 +45,8 @@
     showTitleBar = $bindable(),
     runBackground = $bindable(),
     startHidden = $bindable(),
+    showTrayIcon = $bindable(),
+    trayIconWhite = $bindable(),
     autostart = $bindable(),
     language = $bindable(),
     onDelayChange,
@@ -465,6 +469,30 @@
           onCheckedChange={handleStartHiddenChange}
           disabled={!runBackground}
         />
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <div class="space-y-0.5">
+          <Label for="show-tray-icon">{$_('settingsGeneral.showTrayIcon')}</Label>
+          <p class="text-xs text-muted-foreground">
+            {$_('settingsGeneral.showTrayIconHelp')}
+          </p>
+        </div>
+        <Switch id="show-tray-icon" bind:checked={showTrayIcon} />
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <div class="space-y-0.5">
+          <Label for="tray-icon-white" class={!showTrayIcon ? 'text-muted-foreground' : ''}>{$_('settingsGeneral.trayIconWhite')}</Label>
+          <p class="text-xs text-muted-foreground">
+            {$_('settingsGeneral.trayIconWhiteHelp')}
+          </p>
+        </div>
+        <Switch id="tray-icon-white" bind:checked={trayIconWhite} disabled={!showTrayIcon} />
       </div>
     </div>
   </div>

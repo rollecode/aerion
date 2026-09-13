@@ -402,6 +402,11 @@
   }
 
   // Navigate to previous folder (exposed for keyboard navigation)
+  // Opens the settings dialog. Used by the tray menu via App.svelte.
+  export function openSettings() {
+    showSettingsDialog = true
+  }
+
   export function selectPreviousFolder() {
     const navList = buildFolderNavList()
     if (navList.length === 0) return

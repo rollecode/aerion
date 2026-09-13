@@ -22,6 +22,9 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed build/appicon.png
+var trayIcon []byte
+
 // Command-line flags
 var (
 	debugMode   = flag.Bool("debug", false, "Enable debug logging")
@@ -100,6 +103,8 @@ func runMainMode(mailtoData *app.MailtoData, rawMailtoArg string) {
 	if paths, err := platform.GetPaths(); err == nil {
 		nativeTitleBar = settings.ReadNativeTitleBar(paths.DatabasePath())
 	}
+
+	app.SetTrayIcon(trayIcon)
 
 	// Create an instance of the app structure
 	application := app.NewApp(DebugMode, *dbusNotify)

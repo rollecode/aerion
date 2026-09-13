@@ -658,6 +658,10 @@ export function GetShowTitleBar() {
   return window['go']['app']['App']['GetShowTitleBar']();
 }
 
+export function GetShowTrayIcon() {
+  return window['go']['app']['App']['GetShowTrayIcon']();
+}
+
 export function GetShowViewerCircles() {
   return window['go']['app']['App']['GetShowViewerCircles']();
 }
@@ -700,6 +704,10 @@ export function GetTermsAccepted() {
 
 export function GetThemeMode() {
   return window['go']['app']['App']['GetThemeMode']();
+}
+
+export function GetTrayIconWhite() {
+  return window['go']['app']['App']['GetTrayIconWhite']();
 }
 
 export function GetTrustedCertificates(arg1) {
@@ -1186,6 +1194,10 @@ export function SetShowTitleBar(arg1) {
   return window['go']['app']['App']['SetShowTitleBar'](arg1);
 }
 
+export function SetShowTrayIcon(arg1) {
+  return window['go']['app']['App']['SetShowTrayIcon'](arg1);
+}
+
 export function SetShowViewerCircles(arg1) {
   return window['go']['app']['App']['SetShowViewerCircles'](arg1);
 }
@@ -1208,6 +1220,10 @@ export function SetTermsAccepted(arg1) {
 
 export function SetThemeMode(arg1) {
   return window['go']['app']['App']['SetThemeMode'](arg1);
+}
+
+export function SetTrayIconWhite(arg1) {
+  return window['go']['app']['App']['SetTrayIconWhite'](arg1);
 }
 
 export function ShowWindow() {

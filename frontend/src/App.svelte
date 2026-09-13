@@ -341,6 +341,10 @@
     })
 
     // Listen for window show requests (from single-instance activation, notification clicks)
+    EventsOn('app:open-settings', () => {
+      sidebarRef?.openSettings()
+    })
+
     EventsOn('window:show', () => {
       window.focus()
     })
