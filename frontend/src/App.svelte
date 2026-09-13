@@ -1461,6 +1461,77 @@
         })()
         return
       }
+      case 'c':
+        e.preventDefault()
+        handleCompose()
+        return
+      case 'x':
+        e.preventDefault()
+        messageListRef?.toggleCheck()
+        return
+      case '/':
+        e.preventDefault()
+        messageListRef?.toggleSearchFocus()
+        setFocusedPane('messageList')
+        return
+      case 'o':
+        e.preventDefault()
+        messageListRef?.openSelected()
+        return
+      case 'u':
+        // Back to the list, matching Gmail's "return to conversation list".
+        if (!hasConversation) return
+        e.preventDefault()
+        selectedThreadId = null
+        selectedConversationFolderId = null
+        selectedConversationAccountId = null
+        return
+      case 'r':
+      case 'a': {
+        if (!hasConversation) return
+        e.preventDefault()
+        const all = e.key === 'a'
+        if (focusedPane === 'viewer' && viewerRef?.hasFocusedMessage()) {
+          if (all) {
+            viewerRef.replyAll()
+            return
+          }
+          viewerRef.reply()
+          return
+        }
+        const msgId = getLastMessageId()
+        if (!msgId) return
+        handleReply(all ? 'reply-all' : 'reply', msgId, viewerRef?.isImagesLoaded(msgId) || false)
+        return
+      }
+      case 'I':
+      case 'U': {
+        e.preventDefault()
+        const ids = messageListRef?.hasCheckedMessages()
+          ? (messageListRef?.getCheckedMessageIds() ?? [])
+          : (messageListRef?.getSelectedMessageIds() ?? [])
+        if (ids.length === 0) return
+        if (e.key === 'I') {
+          handleBulkMarkRead(ids)
+          return
+        }
+        handleBulkMarkUnread(ids)
+        return
+      }
+      case '!': {
+        e.preventDefault()
+        const ids = messageListRef?.hasCheckedMessages()
+          ? (messageListRef?.getCheckedMessageIds() ?? [])
+          : (messageListRef?.getSelectedMessageIds() ?? [])
+        if (ids.length === 0) return
+        handleBulkSpam(ids)
+        return
+      }
+      case 'z':
+        e.preventDefault()
+        handleUndo()
+        return
+      case '#': // Gmail's trash key, alias of d/Delete
       case 'd': // alias of Delete: move focused/checked message(s) to Trash
       case 'Backspace':
       case 'Delete': {
