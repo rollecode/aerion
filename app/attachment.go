@@ -169,11 +169,7 @@ func (a *App) SaveAttachmentAs(attachmentID string) (string, error) {
 	log.Debug().Str("filename", att.Filename).Str("messageID", att.MessageID).Msg("Found attachment metadata")
 
 	// Get user's home directory for default save location
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		homeDir = ""
-	}
-	defaultDir := filepath.Join(homeDir, "Downloads")
+	defaultDir := a.DownloadDir()
 
 	// In Flatpak, use portal save dialog (Wails GTK dialog doesn't route through portal)
 	if platform.IsFlatpak() {
@@ -264,8 +260,14 @@ func (a *App) validateOpenPath(path string) error {
 
 	allowedRoots := []string{
 		a.paths.AttachmentsPath(),
-		filepath.Join(homeDir, "Downloads"),
+		filepath.Join(homeDir, downloadDirName),
 		a.paths.Data,
+	}
+
+	// The user's configured download directory is an explicit choice, so it
+	// joins the allowlist alongside the default one.
+	if dir := a.DownloadDir(); dir != "" {
+		allowedRoots = append(allowedRoots, dir)
 	}
 
 	for _, root := range allowedRoots {
@@ -330,11 +332,7 @@ func (a *App) SaveAllAttachments(messageID string) (string, error) {
 	}
 
 	// Get user's home directory for default save location
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		homeDir = ""
-	}
-	defaultDir := filepath.Join(homeDir, "Downloads")
+	defaultDir := a.DownloadDir()
 
 	// In Flatpak, use portal save dialog (Wails GTK dialog doesn't route through portal)
 	if platform.IsFlatpak() {
@@ -514,11 +512,7 @@ func (a *App) SaveEncryptedAttachmentAs(messageID, filename string) (string, err
 	log := logging.WithComponent("app")
 	log.Debug().Str("messageID", messageID).Str("filename", filename).Msg("SaveEncryptedAttachmentAs called")
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		homeDir = ""
-	}
-	defaultDir := filepath.Join(homeDir, "Downloads")
+	defaultDir := a.DownloadDir()
 
 	// In Flatpak, use portal save dialog (Wails GTK dialog doesn't route through portal)
 	if platform.IsFlatpak() {
@@ -588,11 +582,7 @@ func (a *App) SaveAllEncryptedAttachments(messageID string) (string, error) {
 		return "", fmt.Errorf("no attachments found in encrypted message")
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		homeDir = ""
-	}
-	defaultDir := filepath.Join(homeDir, "Downloads")
+	defaultDir := a.DownloadDir()
 
 	// In Flatpak, use portal save dialog (Wails GTK dialog doesn't route through portal)
 	if platform.IsFlatpak() {

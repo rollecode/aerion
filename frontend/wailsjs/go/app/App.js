@@ -482,6 +482,10 @@ export function GetDarkMailContent() {
   return window['go']['app']['App']['GetDarkMailContent']();
 }
 
+export function GetDownloadDirectory() {
+  return window['go']['app']['App']['GetDownloadDirectory']();
+}
+
 export function GetDraft(arg1) {
   return window['go']['app']['App']['GetDraft'](arg1);
 }
@@ -926,6 +930,10 @@ export function PickAttachmentFiles() {
   return window['go']['app']['App']['PickAttachmentFiles']();
 }
 
+export function PickDownloadDirectory() {
+  return window['go']['app']['App']['PickDownloadDirectory']();
+}
+
 export function PickPGPKeyFile() {
   return window['go']['app']['App']['PickPGPKeyFile']();
 }
@@ -1104,6 +1112,10 @@ export function SetDefaultPGPKey(arg1, arg2) {
 
 export function SetDefaultSMIMECertificate(arg1, arg2) {
   return window['go']['app']['App']['SetDefaultSMIMECertificate'](arg1, arg2);
+}
+
+export function SetDownloadDirectory(arg1) {
+  return window['go']['app']['App']['SetDownloadDirectory'](arg1);
 }
 
 export function SetExtensionEnabled(arg1, arg2) {

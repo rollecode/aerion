@@ -259,6 +259,8 @@ export function GetDarkComposerBody():Promise<boolean>;
 
 export function GetDarkMailContent():Promise<boolean>;
 
+export function GetDownloadDirectory():Promise<string>;
+
 export function GetDraft(arg1:string):Promise<smtp.ComposeMessage>;
 
 export function GetFTSIndexStatus(arg1:string):Promise<message.FTSIndexStatus>;
@@ -481,6 +483,8 @@ export function OpenURL(arg1:string):Promise<void>;
 
 export function PickAttachmentFiles():Promise<Array<app.ComposerAttachment>>;
 
+export function PickDownloadDirectory():Promise<string>;
+
 export function PickPGPKeyFile():Promise<string>;
 
 export function PickRecipientCertFile():Promise<string>;
@@ -570,6 +574,8 @@ export function SetDefaultIdentity(arg1:string,arg2:string):Promise<void>;
 export function SetDefaultPGPKey(arg1:string,arg2:string):Promise<void>;
 
 export function SetDefaultSMIMECertificate(arg1:string,arg2:string):Promise<void>;
+
+export function SetDownloadDirectory(arg1:string):Promise<void>;
 
 export function SetExtensionEnabled(arg1:string,arg2:boolean):Promise<void>;
 
