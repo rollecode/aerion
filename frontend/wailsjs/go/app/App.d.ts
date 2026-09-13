@@ -347,6 +347,8 @@ export function GetShowMessageListProfilePics():Promise<boolean>;
 
 export function GetShowTitleBar():Promise<boolean>;
 
+export function GetShowTrayIcon():Promise<boolean>;
+
 export function GetShowViewerCircles():Promise<boolean>;
 
 export function GetSourceAddressbooks(arg1:string):Promise<Array<carddav.Addressbook>>;
@@ -368,6 +370,8 @@ export function GetSystemTheme():Promise<string>;
 export function GetTermsAccepted():Promise<boolean>;
 
 export function GetThemeMode():Promise<string>;
+
+export function GetTrayIconWhite():Promise<boolean>;
 
 export function GetTrustedCertificates(arg1:Array<string>):Promise<Array<certificate.CertificateInfo>>;
 
@@ -611,6 +615,8 @@ export function SetShowMessageListProfilePics(arg1:boolean):Promise<void>;
 
 export function SetShowTitleBar(arg1:boolean):Promise<void>;
 
+export function SetShowTrayIcon(arg1:boolean):Promise<void>;
+
 export function SetShowViewerCircles(arg1:boolean):Promise<void>;
 
 export function SetSpellcheckEnabled(arg1:boolean):Promise<void>;
@@ -622,6 +628,8 @@ export function SetStartHidden(arg1:boolean):Promise<void>;
 export function SetTermsAccepted(arg1:boolean):Promise<void>;
 
 export function SetThemeMode(arg1:string):Promise<void>;
+
+export function SetTrayIconWhite(arg1:boolean):Promise<void>;
 
 export function ShowWindow():Promise<void>;
 

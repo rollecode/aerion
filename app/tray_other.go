@@ -6,3 +6,5 @@ package app
 func (a *App) startTray() {}
 
 func (a *App) stopTray() {}
+
+func (a *App) applyTrayIcon() {}
