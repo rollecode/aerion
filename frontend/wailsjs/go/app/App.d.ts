@@ -525,6 +525,8 @@ export function SaveAllEncryptedAttachments(arg1:string):Promise<string>;
 
 export function SaveAttachmentAs(arg1:string):Promise<string>;
 
+export function SaveConversationPDF(arg1:string,arg2:string):Promise<boolean>;
+
 export function SaveDraft(arg1:string,arg2:smtp.ComposeMessage,arg3:string):Promise<app.DraftResult>;
 
 export function SaveEncryptedAttachmentAs(arg1:string,arg2:string):Promise<string>;

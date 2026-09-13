@@ -2,7 +2,7 @@
   import { onMount, onDestroy, tick } from 'svelte'
   import Icon from '@iconify/svelte'
   // @ts-ignore - wailsjs bindings
-  import { GetConversation, GetReadReceiptResponsePolicy, SendReadReceipt, IgnoreReadReceipt, GetMarkAsReadDelay, GetMessageSource, ProcessSMIMEMessage, ProcessPGPMessage, FetchMessageBody } from '../../../../wailsjs/go/app/App'
+  import { GetConversation, GetReadReceiptResponsePolicy, SendReadReceipt, IgnoreReadReceipt, GetMarkAsReadDelay, GetMessageSource, ProcessSMIMEMessage, ProcessPGPMessage, FetchMessageBody, SaveConversationPDF } from '../../../../wailsjs/go/app/App'
   // @ts-ignore - wailsjs bindings
   import { MarkAsRead, MarkAsUnread, Star, Unstar, Archive, Trash, MarkAsSpam, MarkAsNotSpam, DeletePermanently, Undo } from '../../../../wailsjs/go/app/App'
   // @ts-ignore - wailsjs path
@@ -983,8 +983,8 @@
     return `<section class="msg">${header}<div class="body">${bodyHtml}</div></section>`
   }
 
-  function printDocument(subject: string, blocks: string[]) {
-    const doc = `<!DOCTYPE html><html><head><meta charset="utf-8">
+  function buildPrintHtml(subject: string, blocks: string[]): string {
+    return `<!DOCTYPE html><html><head><meta charset="utf-8">
       <style>
         body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #000; background: #fff; margin: 0; padding: 0; font-size: 12px; line-height: 1.45; }
         h1 { font-size: 15px; margin: 0 0 14px; }
@@ -998,7 +998,10 @@
         @page { margin: 14mm; }
       </style></head>
       <body><h1>${escapeHtmlText(subject)}</h1>${blocks.join('')}</body></html>`
+  }
 
+  function printDocument(subject: string, blocks: string[]) {
+    const doc = buildPrintHtml(subject, blocks)
     const frame = document.createElement('iframe')
     frame.setAttribute('aria-hidden', 'true')
     frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;'
@@ -1018,13 +1021,9 @@
     document.body.appendChild(frame)
   }
 
-  async function handlePrint() {
-    // Print only the messages currently rendered (those with an EmailBody).
+  // Collect only the messages currently rendered (those with an EmailBody).
+  async function collectPrintBlocks(): Promise<string[]> {
     const msgs = visibleMessages.filter((m) => emailBodyRefs[m.id])
-    if (msgs.length === 0) {
-      window.print()
-      return
-    }
     const blocks: string[] = []
     for (const m of msgs) {
       let body: string
@@ -1035,7 +1034,32 @@
       }
       blocks.push(buildPrintBlock(m, body))
     }
+    return blocks
+  }
+
+  async function handlePrint() {
+    const blocks = await collectPrintBlocks()
+    if (blocks.length === 0) {
+      window.print()
+      return
+    }
     printDocument(conversation?.subject ?? '', blocks)
+  }
+
+  async function handleSavePdf() {
+    const blocks = await collectPrintBlocks()
+    if (blocks.length === 0) return
+
+    const subject = conversation?.subject ?? ''
+    try {
+      const saved = await SaveConversationPDF(buildPrintHtml(subject, blocks), subject)
+      if (saved) {
+        toasts.success($_('viewer.pdfSaved'))
+      }
+    } catch (err) {
+      console.error('Save as PDF failed:', err)
+      toasts.error($_('viewer.pdfFailed'))
+    }
   }
 
   // Read receipt handling
@@ -1415,6 +1439,13 @@
           onclick={handlePrint}
         >
           <Icon icon="mdi:printer-outline" class="w-5 h-5 text-muted-foreground" />
+        </button>
+        <button
+          class="p-2 rounded-md hover:bg-muted transition-colors"
+          title={$_('viewer.saveAsPdf')}
+          onclick={handleSavePdf}
+        >
+          <Icon icon="mdi:file-pdf-box" class="w-5 h-5 text-muted-foreground" />
         </button>
       </div>
     </div>
