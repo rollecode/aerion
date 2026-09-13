@@ -414,6 +414,10 @@ export function GetAutostart() {
   return window['go']['app']['App']['GetAutostart']();
 }
 
+export function GetCompactToasts() {
+  return window['go']['app']['App']['GetCompactToasts']();
+}
+
 export function GetComposerFormat() {
   return window['go']['app']['App']['GetComposerFormat']();
 }
@@ -1072,6 +1076,10 @@ export function SetAlwaysShowMessageCheckbox(arg1) {
 
 export function SetAutostart(arg1) {
   return window['go']['app']['App']['SetAutostart'](arg1);
+}
+
+export function SetCompactToasts(arg1) {
+  return window['go']['app']['App']['SetCompactToasts'](arg1);
 }
 
 export function SetComposerFormat(arg1) {

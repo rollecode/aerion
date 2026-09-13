@@ -84,6 +84,16 @@ func (a *App) SetShowMessageListProfilePics(enabled bool) error {
 	return a.settingsStore.SetShowMessageListProfilePics(enabled)
 }
 
+// GetCompactToasts returns whether in-app notifications render in a compact single-row layout
+func (a *App) GetCompactToasts() (bool, error) {
+	return a.settingsStore.GetCompactToasts()
+}
+
+// SetCompactToasts toggles compact single-row in-app notifications
+func (a *App) SetCompactToasts(enabled bool) error {
+	return a.settingsStore.SetCompactToasts(enabled)
+}
+
 // GetAlwaysShowMessageCheckbox returns whether the message list reserves a fixed checkbox column
 func (a *App) GetAlwaysShowMessageCheckbox() (bool, error) {
 	return a.settingsStore.GetAlwaysShowMessageCheckbox()
