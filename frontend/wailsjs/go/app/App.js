@@ -1014,6 +1014,10 @@ export function SaveAttachmentAs(arg1) {
   return window['go']['app']['App']['SaveAttachmentAs'](arg1);
 }
 
+export function SaveConversationPDF(arg1, arg2) {
+  return window['go']['app']['App']['SaveConversationPDF'](arg1, arg2);
+}
+
 export function SaveDraft(arg1, arg2, arg3) {
   return window['go']['app']['App']['SaveDraft'](arg1, arg2, arg3);
 }
