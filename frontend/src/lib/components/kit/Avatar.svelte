@@ -1,38 +1,42 @@
+<script module lang="ts">
+  const bimiCache = new Map<string, string>()
+
+  const TWO_PART_TLDS = new Set(['co.uk','com.au','co.jp','co.nz','com.br','com.mx','com.cn','co.in','net.au','org.uk','me.uk','ac.uk','co.kr','com.sg','com.hk','com.tw','com.ar','com.co','com.pe','co.za','com.ua','co.il','com.tr','com.pl','com.eg','com.sa','com.ae','com.ph','com.my','com.vn','com.th'])
+
+  function apexDomain(domain: string): string {
+    const parts = domain.split('.')
+    if (parts.length <= 2) return domain
+    const lastTwo = parts.slice(-2).join('.')
+    return TWO_PART_TLDS.has(lastTwo) ? parts.slice(-3).join('.') : lastTwo
+  }
+</script>
+
 <script lang="ts">
-  // Avatar circle — colored initials with consistent color hash from email.
-  // Uses the SAME theme classes (.avatar-1 .. .avatar-14) defined in
-  // frontend/src/themes/_utilities.css that the mail UI uses, so the palette
-  // matches mail automatically (and stays matched even though the JS is
-  // duplicated — see project_extension_sdk_pattern memory for rationale).
+  import { md5 } from '$lib/utils/md5'
 
   interface Props {
-    /** Email address used as the color-hash seed. */
     email: string
-    /** Optional display name. If absent, initials derive from email. */
     name?: string
-    /** Density preset. */
     density?: 'micro' | 'compact' | 'standard' | 'large'
-    /** Override the density-derived pixel size (rare). */
     size?: number
-    /** Inline base64-encoded photo bytes. When set with photoMediaType, the
-     *  avatar renders as an <img> instead of initials. Falls back to initials
-     *  on image load error. */
     photoData?: string
-    /** Photo media type (e.g. "image/jpeg"). Required alongside photoData. */
     photoMediaType?: string
+    gravatar?: boolean
+    /** Draw the coloured initials circle when no image resolves. Off leaves the
+     *  slot empty so the layout still lines up. */
+    initialsFallback?: boolean
   }
 
-  const { email, name, density = 'standard', size, photoData, photoMediaType }: Props = $props()
+  const { email, name, density = 'standard', size, photoData, photoMediaType, gravatar = true, initialsFallback = true }: Props = $props()
 
-  // Photo rendering state: true when we have data+media-type AND the img loaded
-  // successfully. On error (broken base64, unsupported MIME, etc.), falls back
-  // to initials.
   let photoFailed = $state(false)
-  const showPhoto = $derived(!!photoData && !!photoMediaType && !photoFailed)
+  let gravatarFailed = $state(false)
+  let faviconFailed = $state(false)
+  let appleTouchIconFailed = $state(false)
+  let dicebearFailed = $state(false)
+  let bimiFailed = $state(false)
+  let bimiUrl = $state('')
 
-  // DJB2-style hash. Bit-for-bit the same as mail's getAvatarColor() in
-  // ConversationRow.svelte:172-180 so an extension's contact and a mail
-  // sender with the same email render the same color.
   function colorClass(seed: string): string {
     let hash = 0
     for (let i = 0; i < seed.length; i++) {
@@ -41,10 +45,6 @@
     return `avatar-${(Math.abs(hash) % 14) + 1}`
   }
 
-  // Ported verbatim from mail's getInitials in ConversationRow.svelte:158-170.
-  // Split-on-single-space (not whitespace regex), map to first char, join +
-  // uppercase + slice(0,2). Kept identical so an extension's contact and a
-  // mail sender with the same display name render the same letters.
   function initials(displayName: string | undefined, fallbackEmail: string): string {
     if (!displayName && !fallbackEmail) return '?'
     const name = displayName || fallbackEmail
@@ -56,7 +56,6 @@
       .slice(0, 2)
   }
 
-  // Density → pixel size table. Tuned to match mail UI's density visual weight.
   const DENSITY_SIZE: Record<NonNullable<Props['density']>, number> = {
     micro: 24,
     compact: 28,
@@ -68,23 +67,119 @@
   const fontPx = $derived(Math.round(px * 0.4))
   const cls = $derived(colorClass(email || ''))
   const text = $derived(initials(name, email))
+
+  const normalizedEmail = $derived(email?.trim().toLowerCase() ?? '')
+  const domain = $derived(normalizedEmail.split('@')[1] ?? '')
+  const apex = $derived(apexDomain(domain))
+
+  const gravatarUrl = $derived(
+    gravatar && normalizedEmail && !gravatarFailed
+      ? `https://www.gravatar.com/avatar/${md5(normalizedEmail)}?d=404&s=${Math.round(px * 2)}`
+      : '',
+  )
+
+  const appleTouchIconUrl = $derived(
+    gravatar && apex && !appleTouchIconFailed
+      ? `https://${apex}/apple-touch-icon.png`
+      : '',
+  )
+
+  const faviconUrl = $derived(
+    gravatar && apex && !faviconFailed
+      ? `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${apex}&size=128`
+      : '',
+  )
+
+  const dicebearUrl = $derived(
+    gravatar && normalizedEmail && !dicebearFailed
+      ? `https://api.dicebear.com/9.x/notionists-neutral/png?seed=${encodeURIComponent(normalizedEmail)}&size=${Math.round(px * 2)}`
+      : '',
+  )
+
+  const showBimi = $derived(!!bimiUrl && !bimiFailed)
+  const showGravatar = $derived(!showBimi && !!gravatarUrl)
+  const showPhoto = $derived(!showBimi && !showGravatar && !!photoData && !!photoMediaType && !photoFailed)
+  const showAppleTouchIcon = $derived(!showBimi && !showGravatar && !showPhoto && !!appleTouchIconUrl)
+  const showFavicon = $derived(!showBimi && !showGravatar && !showPhoto && !showAppleTouchIcon && !!faviconUrl)
+  const showDicebear = $derived(!showBimi && !showGravatar && !showPhoto && !showAppleTouchIcon && !showFavicon && !!dicebearUrl)
+
+  $effect(() => {
+    if (!gravatar || !apex) {
+      bimiUrl = ''
+      return
+    }
+    const cached = bimiCache.get(apex)
+    if (cached !== undefined) {
+      bimiUrl = cached
+      return
+    }
+    bimiUrl = ''
+    fetch(`https://dns.google/resolve?name=default._bimi.${encodeURIComponent(apex)}&type=TXT`)
+      .then((r) => r.json())
+      .then((j) => {
+        const record = j?.Answer?.[0]?.data ?? ''
+        const logo = record.split(';').map((s: string) => s.trim()).find((s: string) => s.startsWith('l='))?.slice(2) ?? ''
+        bimiCache.set(apex, logo)
+        bimiUrl = logo
+      })
+      .catch(() => {
+        bimiCache.set(apex, '')
+        bimiUrl = ''
+      })
+  })
 </script>
 
 <div
-  class="rounded-full flex-shrink-0 inline-flex items-center justify-center font-medium overflow-hidden {showPhoto ? '' : cls}"
+  class="rounded-full flex-shrink-0 inline-flex items-center justify-center font-medium overflow-hidden {showBimi || showGravatar || showPhoto || showAppleTouchIcon || showFavicon || showDicebear || !initialsFallback ? '' : cls}"
   style:width="{px}px"
   style:height="{px}px"
   style:font-size="{fontPx}px"
   aria-hidden="true"
 >
-  {#if showPhoto}
+  {#if showBimi}
+    <img
+      src={bimiUrl}
+      alt=""
+      class="w-full h-full object-cover"
+      onerror={() => { bimiFailed = true }}
+    />
+  {:else if showGravatar}
+    <img
+      src={gravatarUrl}
+      alt=""
+      class="w-full h-full object-cover"
+      onerror={() => { gravatarFailed = true }}
+    />
+  {:else if showPhoto}
     <img
       src="data:{photoMediaType};base64,{photoData}"
       alt=""
       class="w-full h-full object-cover"
       onerror={() => { photoFailed = true }}
     />
-  {:else}
+  {:else if showAppleTouchIcon}
+    <img
+      src={appleTouchIconUrl}
+      alt=""
+      class="w-full h-full object-cover"
+      onerror={() => { appleTouchIconFailed = true }}
+    />
+  {:else if showFavicon}
+    <img
+      src={faviconUrl}
+      alt=""
+      class="w-full h-full object-cover"
+      onload={(e) => { if ((e.currentTarget as HTMLImageElement).naturalWidth <= 16) faviconFailed = true }}
+      onerror={() => { faviconFailed = true }}
+    />
+  {:else if showDicebear}
+    <img
+      src={dicebearUrl}
+      alt=""
+      class="w-full h-full object-cover"
+      onerror={() => { dicebearFailed = true }}
+    />
+  {:else if initialsFallback}
     {text}
   {/if}
 </div>
