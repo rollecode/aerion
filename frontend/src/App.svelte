@@ -1455,10 +1455,7 @@
           ? (messageListRef?.getCheckedMessageIds() ?? [])
           : (messageListRef?.getSelectedMessageIds() ?? [])
         if (ids.length === 0) return
-        ;(async () => {
-          await MarkAsRead(ids).catch(() => {})
-          handleBulkArchive(ids)
-        })()
+        handleBulkArchive(ids)
         return
       }
       case 'c':
