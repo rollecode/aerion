@@ -205,8 +205,6 @@ func (s *Store) ListConversationsUnifiedInbox(offset, limit int, sortOrder, filt
 	return conversations, nil
 }
 
-
-
 // CountConversationsUnifiedInbox returns the total count of conversations across all inbox folders
 func (s *Store) CountConversationsUnifiedInbox(filter string) (int, error) {
 	filterCond := filterWhereClause(filter, "m.")
@@ -1561,6 +1559,10 @@ func (s *Store) GetConversation(threadID, folderID string) (*Conversation, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get conversation summary: %w", err)
 	}
+	// Aggregates always yield a row; zero matches means the thread left this folder.
+	if c.MessageCount == 0 {
+		return nil, nil
+	}
 	if latestDateStr.Valid && latestDateStr.String != "" {
 		c.LatestDate = parseTimeString(latestDateStr.String)
 	}
@@ -2616,4 +2618,3 @@ func highlightMatches(text, query string) string {
 
 	return highlighted
 }
-

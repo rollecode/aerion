@@ -98,6 +98,8 @@
   // Deferred reload: when a dialog (e.g. folder picker) is open, defer the reload
   // so the component tree isn't destroyed mid-interaction
   let pendingReload = false
+  let loadDone: (() => void) | null = null
+  let loadPromise: Promise<void> = Promise.resolve()
 
   // Buffer for flag changes that arrive while loadConversations() is in-flight.
   // On notification click, loadConversations (folder change) and MarkAsRead race —
@@ -427,10 +429,12 @@
     // Prevent concurrent loads — defer instead of dropping
     if (loading) {
       pendingReload = true
+      await loadPromise
       return
     }
 
     loading = true
+    loadPromise = new Promise(resolve => { loadDone = resolve })
     error = null
 
     // Capture offset and generation at start — both may change during async operations
@@ -499,6 +503,7 @@
       error = $_('viewer.failedToLoadMessages')
     } finally {
       loading = false
+      loadDone?.()
       // Flush any deferred reload (from sync event during load or dialog guard).
       // Only the latest-generation load should drive the flush — otherwise a
       // stale completion could fire scheduleReload redundantly.
@@ -918,11 +923,25 @@
     checkedThreadIds = newChecked
   }
 
+  // The list may still be stale when this runs, so skip the rows that were acted on.
+  function survivorAt(list: { threadId: string }[], index: number, removed: Set<string>) {
+    if (index < 0 || list.length === 0) return null
+    const start = Math.min(index, list.length - 1)
+    for (let i = start; i < list.length; i++) {
+      if (!removed.has(list[i].threadId)) return { conv: list[i], index: i }
+    }
+    for (let i = start - 1; i >= 0; i--) {
+      if (!removed.has(list[i].threadId)) return { conv: list[i], index: i }
+    }
+    return null
+  }
+
   export function handleActionComplete(autoSelectNext: boolean = false) {
     onRowActionComplete?.()
     // Get target index BEFORE reload (for auto-select after delete/archive/spam)
     // Uses earliest checked item's index so bulk delete doesn't overshoot
     const currentIndex = getEarliestCheckedIndex()
+    const removed = checkedThreadIds.size > 0 ? new Set(checkedThreadIds) : new Set(selectedThreadId ? [selectedThreadId] : [])
     const scrollTop = listContainerRef?.scrollTop ?? 0
 
     // If in search mode, refresh search results instead of conversations
@@ -941,16 +960,13 @@
           if (isNarrow) {
             hideViewer()
           }
-          if (currentIndex >= 0 && searchResults.length > 0) {
-            const newIndex = Math.min(currentIndex, searchResults.length - 1)
-            const conv = searchResults[newIndex]
-            if (conv) {
-              if (isNarrow) {
-                selectedThreadId = conv.threadId
-              }
-              if (!isNarrow) {
-                selectConversation(conv.threadId, newIndex)
-              }
+          const next = survivorAt(searchResults, currentIndex, removed)
+          if (next) {
+            if (isNarrow) {
+              selectedThreadId = next.conv.threadId
+            }
+            if (!isNarrow) {
+              selectConversation(next.conv.threadId, next.index)
             }
           }
         }
@@ -978,16 +994,13 @@
         if (isNarrow) {
           hideViewer()
         }
-        if (currentIndex >= 0 && conversations.length > 0) {
-          const newIndex = Math.min(currentIndex, conversations.length - 1)
-          const conv = conversations[newIndex]
-          if (conv) {
-            if (isNarrow) {
-              selectedThreadId = conv.threadId
-            }
-            if (!isNarrow) {
-              selectConversation(conv.threadId, newIndex)
-            }
+        const next = survivorAt(conversations, currentIndex, removed)
+        if (next) {
+          if (isNarrow) {
+            selectedThreadId = next.conv.threadId
+          }
+          if (!isNarrow) {
+            selectConversation(next.conv.threadId, next.index)
           }
         }
       }

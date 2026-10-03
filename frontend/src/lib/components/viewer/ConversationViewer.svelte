@@ -213,9 +213,11 @@
     cleanupFunctions.push(
       EventsOn('messages:moved', (data: { messageIds: string[], destFolderId: string }) => {
         if (!conversation?.messages?.some(m => data.messageIds.includes(m.id))) return
+        // A newer thread is already loading; this one is stale and must not steer selection.
+        if (loadedThreadId !== threadId) return
 
-        const movedCount = conversation.messages.filter(m => data.messageIds.includes(m.id)).length
-        const remainingCount = conversation.messages.length - movedCount
+        // Replies in Sent stay in the thread but not in this folder.
+        const remainingCount = conversation.messages.filter(m => !data.messageIds.includes(m.id) && m.folderId === folderId).length
 
         if (remainingCount === 0) {
           // All messages moved out — dismiss and auto-select next
@@ -461,6 +463,8 @@
     }
   }
 
+  let loadedThreadId: string | null = null
+
   async function loadConversation(tid: string, fid: string) {
     // Clear any pending mark-as-read timer from previous conversation
     if (markAsReadTimer) {
@@ -477,7 +481,14 @@
       // Stale guard: user navigated away while we were fetching
       if (threadId !== tid) return
 
+      // Nothing left in this folder: the thread moved on, so should the viewer.
+      if (!result) {
+        dismissConversation(true)
+        return
+      }
+
       conversation = result
+      loadedThreadId = tid
 
       // Auto-expand unread messages and the last message
       if (conversation?.messages) {
@@ -524,6 +535,7 @@
       markAsReadTimer = null
     }
     conversation = null
+    loadedThreadId = null
     if (autoSelectNext) {
       onActionComplete?.(true)
     }
